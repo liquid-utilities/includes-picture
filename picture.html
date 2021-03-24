@@ -1,0 +1,232 @@
+{% capture workspace__picture %}
+{% comment %}
+---
+vim: filetype=liquid
+version: 0.0.1
+license: AGPL-3.0
+author: S0AndS0
+description: Builds `picture` element from FrontMatter and page includes
+---
+
+
+## Example FrontMatter
+
+
+```YAML
+pictures:
+  funny_cat:
+    url:
+      base: assets/images/funny_cat/
+      filter: absolute_url
+
+    img:
+      alt: Picture of a funny cat playing with yarn ball
+      src: playful-yarn.jpeg
+      width: 300
+      height: 200
+      loading: lazy
+      decoding: async
+
+    sources:
+      - srcset: playful-yarn.png
+
+      - srcset:
+        - playful-yarn-480.webp
+        - playful-yarn-480-2x.webp 2x
+        media: '(min-width: 600px)'
+```
+
+
+## Example usage
+
+
+{% raw %}
+```liquid
+{% include modules/includes-picture/picture.html name='funny_cat' %}
+```
+{% endraw %}
+
+
+## Example output
+
+
+```HTML
+<picture>
+  <source type="image/png"
+          srcset="https://liquid-utilities.github.io/includes-picture/assets/images/funny_cat/playful-yarn.png"
+  />
+
+  <source type="image/webp"
+          srcset="https://liquid-utilities.github.io/includes-picture/assets/images/funny_cat/playful-yarn-480.webp,
+                  https://liquid-utilities.github.io/includes-picture/assets/images/funny_cat/playful-yarn-480-2x.webp 2x"
+          media="(min-width: 600px)"
+  />
+
+  <img src="https://liquid-utilities.github.io/includes-picture/assets/images/funny_cat/playful-yarn.jpeg"
+       height="300"
+       width="200"
+       alt="Picture of a funny cat playing with yarn ball"
+       loading="lazy"
+       decoding="async"
+  />
+</picture>
+```
+
+{% endcomment %}
+{% assign workspace__picture__name = include.name %}
+{% assign workspace__picture__data = page.pictures[workspace__picture__name] | default: layout.pictures[workspace__picture__name] %}
+
+{% if workspace__picture__data and workspace__picture__data.img %}
+  {% assign workspace__picture__sources_list = '' | split: '' %}
+    {% for workspace__picture__source in workspace__picture__data.sources %}
+      {% unless workspace__picture__source.srcset %}{% continue %}{% endunless %}
+
+      {% assign workspace__picture__source__srcset__list = workspace__picture__source.srcset %}
+      {% unless workspace__picture__source__srcset__list[0] %}
+        {% assign workspace__picture__source__srcset__list = workspace__picture__source__srcset__list | split: ',' %}
+      {% endunless %}
+
+
+      {% capture workspace__picture__source__sub_type %}{{
+        workspace__picture__source__srcset__list.first
+        | strip
+        | split: ' '
+        | first
+        | split: '.'
+        | last
+      }}{% endcapture %}
+
+      {% if workspace__picture__source__sub_type == 'jpg'
+         or workspace__picture__source__sub_type == 'jfif'
+         or workspace__picture__source__sub_type == 'pjpeg'
+         or workspace__picture__source__sub_type == 'pjp'
+         or workspace__picture__source__sub_type == 'jpe'
+         or workspace__picture__source__sub_type == 'jif'
+      %}
+        {% assign workspace__picture__source__sub_type = 'jpeg' %}
+      {% elsif workspace__picture__source__sub_type == 'ico'
+            or workspace__picture__source__sub_type == 'cur'
+      %}
+        {% assign workspace__picture__source__sub_type = 'vnd.microsoft.icon' %}
+      {% elsif workspace__picture__source__sub_type == 'tif' %}
+        {% assign workspace__picture__source__sub_type = 'tiff' %}
+      {% endif %}
+
+      {% capture workspace__picture__source__type %}image/{{
+        workspace__picture__source__sub_type
+      }}{% endcapture %}
+
+
+      {% assign workspace__picture__source__srcset__string = nil %}
+      {% for workspace__picture__source__srcset__item in workspace__picture__source__srcset__list %}
+        {% assign workspace__picture__source__srcset__item__data = workspace__picture__source__srcset__item | split: ' ' %}
+        {% assign workspace__picture__source__srcset__item__url = workspace__picture__source__srcset__item__data.first | strip %}
+        {% assign workspace__picture__source__srcset__item__descriptor = workspace__picture__source__srcset__item__data.last | strip %}
+        {% if workspace__picture__source__srcset__item == workspace__picture__source__srcset__item__descriptor %}
+          {% assign workspace__picture__source__srcset__item__descriptor = nil %}
+        {% endif %}
+
+        {% if workspace__picture__data.url %}
+          {% if workspace__picture__data.url.base %}
+            {% capture workspace__picture__source__srcset__item__url %}{{ workspace__picture__data.url.base }}{{ workspace__picture__source__srcset__item__url }}{% endcapture %}
+          {% endif %}
+
+          {% if workspace__picture__data.url.filter == 'absolute_url' %}
+            {% capture workspace__picture__source__srcset__item__url %}{{ workspace__picture__source__srcset__item__url | absolute_url }}{% endcapture %}
+          {% elsif workspace__picture__data.url.filter == 'relative_url' %}
+            {% capture workspace__picture__source__srcset__item__url %}{{ workspace__picture__source__srcset__item__url | relative_url }}{% endcapture %}
+          {% endif %}
+        {% endif %}
+
+        {% if workspace__picture__source__srcset__string %}
+          {% capture workspace__picture__source__srcset__string %}{{ workspace__picture__source__srcset__string }}, {{ workspace__picture__source__srcset__item__url }}{% endcapture %}
+        {% else %}
+          {% assign workspace__picture__source__srcset__string = workspace__picture__source__srcset__item__url %}
+        {% endif %}
+
+        {% if workspace__picture__source__srcset__item__descriptor %}
+          {% capture workspace__picture__source__srcset__string %}{{ workspace__picture__source__srcset__string }} {{ workspace__picture__source__srcset__item__descriptor }}{% endcapture %}
+        {% endif %}
+
+        {% assign workspace__picture__source__srcset__item__descriptor = nil %}
+        {% assign workspace__picture__source__srcset__item__url = nil %}
+        {% assign workspace__picture__source__srcset__item__data = nil %}
+        {% assign workspace__picture__source__srcset__item = nil %}
+      {% endfor %}
+
+      {% capture workspace__picture__sources_list__item %}
+<source type="{{ workspace__picture__source__type | strip | strip_newlines }}"
+ srcset="{{ workspace__picture__source__srcset__string }}"
+{% if workspace__picture__source.media %}
+ media="{{ workspace__picture__source.media | strip }}"
+{% endif %}
+/>
+      {% endcapture %}
+      {% assign workspace__picture__sources_list__item = workspace__picture__sources_list__item | strip_newlines | strip %}
+      {% assign workspace__picture__sources_list = workspace__picture__sources_list | push: workspace__picture__sources_list__item %}
+
+      {% assign workspace__picture__sources_list__item = nil %}
+      {% assign workspace__picture__source__srcset__string = nil %}
+      {% assign workspace__picture__source__type = nil %}
+      {% assign workspace__picture__source__srcset__list = nil %}
+    {% endfor %}
+
+
+    {% if workspace__picture__data.url %}
+      {% assign workspace__picture__img__src__string = workspace__picture__data.img.src | strip | strip_newlines %}
+      {% if workspace__picture__data.url.base %}
+        {% capture workspace__picture__img__src__string %}{{ workspace__picture__data.url.base }}{{ workspace__picture__img__src__string }}{% endcapture %}
+      {% endif %}
+
+      {% if workspace__picture__data.url.filter == 'absolute_url' %}
+        {% capture workspace__picture__img__src__string %}{{ workspace__picture__img__src__string | absolute_url }}{% endcapture %}
+      {% elsif workspace__picture__data.url.filter == 'relative_url' %}
+        {% capture workspace__picture__img__src__string %}{{ workspace__picture__img__src__string | relative_url }}{% endcapture %}
+      {% endif %}
+    {% else %}
+      {% assign workspace__picture__img__src__string = workspace__picture__data.url %}
+    {% endif %}
+
+
+    {% capture workspace__picture__image %}
+<img src="{{ workspace__picture__img__src__string | strip }}"
+{% if workspace__picture__data.img.alt %}
+ alt="{{ workspace__picture__data.img.alt }}"
+{% endif %}
+{% if workspace__picture__data.img.height %}
+ height="{{ workspace__picture__data.img.height }}"
+{% endif %}
+{% if workspace__picture__data.img.width %}
+ width="{{ workspace__picture__data.img.width }}"
+{% endif %}
+{% if workspace__picture__data.img.loading %}
+ loading="{{ workspace__picture__data.img.loading }}"
+{% endif %}
+{% if workspace__picture__data.img.decoding %}
+ decoding="{{ workspace__picture__data.img.decoding }}"
+{% endif %}
+/>
+    {% endcapture %}
+
+
+    {% assign workspace__picture__sources_list__length = workspace__picture__sources_list | size %}
+    {% capture workspace__picture__output %}
+<picture>
+{% if workspace__picture__sources_list__length > 0 %}
+{{ workspace__picture__sources_list | join: '' }}
+{% endif %}
+{{ workspace__picture__image | strip_newlines | strip }}
+</picture>
+    {% endcapture %}
+
+
+    {% assign workspace__picture__sources_list__length = nil %}
+    {% assign workspace__picture__image = nil %}
+    {% assign workspace__picture__sources_list = nil %}
+    {% assign workspace__picture__img__src__string = nil %}
+{% endif %}
+
+
+{% assign workspace__picture__name = nil %}
+{% assign workspace__picture__data = nil %}
+{% endcapture %}{% if workspace__picture %}{{ workspace__picture__output | strip_newlines | strip }}{% assign workspace__picture__output = nil %}{% assign workspace__picture = nil %}{% endif %}

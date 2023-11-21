@@ -1,0 +1,6 @@
+## Vim (BTW™)
+*.swp
+
+## Cruft unfit to track
+dev
+

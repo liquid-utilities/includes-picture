@@ -42,6 +42,8 @@ Builds `picture` element from FrontMatter and includes
     - [`media`][heading__sources0media]
 
 - [&#x1F5D2; Notes][heading__notes]
+  - [Converting `.png` images to `.jpeg` and `.avif`][heading__converting_png_images_to_jpeg_and_avif]
+  - [Converting `.png` images to `.webp`][heading__converting_png_images_to_webp]
 
 - [:chart_with_upwards_trend: Contributing][heading__contributing]
   - [:trident: Forking][heading__forking]
@@ -441,6 +443,39 @@ ______
 
 This repository may not be feature complete and/or fully functional, Pull Requests that add features or fix bugs are certainly welcomed.
 
+
+
+### Converting `.png` images to `.jpeg` and `.avif`
+[heading__converting_png_images_to_jpeg_and_avif]: #converting-png-images-to-jpeg-and-avif
+
+
+```Bash
+sudo apt-get install imagemagic
+```
+
+
+```Bash
+convert input.png output.jpeg
+
+convert input.png output.avif
+```
+
+
+---
+
+
+### Converting `.png` images to `.webp`
+[heading__converting_png_images_to_webp]: #converting-png-images-to-webp
+
+
+```Bash
+sudo apt-get install cwebp
+```
+
+
+```Bash
+cwebp -q 60 input.png -o output.webp
+```
 
 ______
 

@@ -131,10 +131,17 @@ pictures:
             {% capture workspace__picture__source__srcset__item__url %}{{ workspace__picture__data.url.base }}{{ workspace__picture__source__srcset__item__url }}{% endcapture %}
           {% endif %}
 
+          {% assign workspace__picture__source__srcset__item__relative_url = workspace__picture__source__srcset__item__url | relative_url %}
+          {% assign workspace__picture__source__srcset__item__static_file = site.site.static_files | where: "path", workspace__picture__source__srcset__item__relative_url | first %}
+          {% unless workspace__picture__source__srcset__item__static_file %}
+            {% assign workspace__picture__source__srcset__item__relative_url = nil %}
+            {% continue %}
+          {% endunless %}
+
           {% if workspace__picture__data.url.filter == 'absolute_url' %}
             {% capture workspace__picture__source__srcset__item__url %}{{ workspace__picture__source__srcset__item__url | absolute_url }}{% endcapture %}
           {% elsif workspace__picture__data.url.filter == 'relative_url' %}
-            {% capture workspace__picture__source__srcset__item__url %}{{ workspace__picture__source__srcset__item__url | relative_url }}{% endcapture %}
+            {% capture workspace__picture__source__srcset__item__url %}{{ workspace__picture__source__srcset__item__relative_url }}{% endcapture %}
           {% endif %}
         {% endif %}
 
@@ -148,22 +155,26 @@ pictures:
           {% capture workspace__picture__source__srcset__string %}{{ workspace__picture__source__srcset__string }} {{ workspace__picture__source__srcset__item__descriptor }}{% endcapture %}
         {% endif %}
 
+        {% assign workspace__picture__source__srcset__item__relative_url = nil %}
+        {% assign workspace__picture__source__srcset__item__static_file = nil %}
         {% assign workspace__picture__source__srcset__item__descriptor = nil %}
         {% assign workspace__picture__source__srcset__item__url = nil %}
         {% assign workspace__picture__source__srcset__item__data = nil %}
         {% assign workspace__picture__source__srcset__item = nil %}
       {% endfor %}
 
-      {% capture workspace__picture__sources_list__item %}
+      {% if workspace__picture__source__srcset__string %}
+        {% capture workspace__picture__sources_list__item %}
 <source type="{{ workspace__picture__source__type | strip | strip_newlines }}"
  srcset="{{ workspace__picture__source__srcset__string }}"
 {% if workspace__picture__source.media %}
  media="{{ workspace__picture__source.media | strip }}"
 {% endif %}
 />
-      {% endcapture %}
-      {% assign workspace__picture__sources_list__item = workspace__picture__sources_list__item | strip_newlines | strip %}
-      {% assign workspace__picture__sources_list = workspace__picture__sources_list | push: workspace__picture__sources_list__item %}
+        {% endcapture %}
+        {% assign workspace__picture__sources_list__item = workspace__picture__sources_list__item | strip_newlines | strip %}
+        {% assign workspace__picture__sources_list = workspace__picture__sources_list | push: workspace__picture__sources_list__item %}
+      {% endif %}
 
       {% assign workspace__picture__sources_list__item = nil %}
       {% assign workspace__picture__source__srcset__string = nil %}

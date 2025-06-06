@@ -132,7 +132,7 @@ pictures:
           {% endif %}
 
           {% assign workspace__picture__source__srcset__item__relative_url = workspace__picture__source__srcset__item__url | relative_url %}
-          {% assign workspace__picture__source__srcset__item__static_file = site.site.static_files | where: "path", workspace__picture__source__srcset__item__relative_url | first %}
+          {% assign workspace__picture__source__srcset__item__static_file = site.static_files | where: "path", workspace__picture__source__srcset__item__relative_url | first %}
           {% unless workspace__picture__source__srcset__item__static_file %}
             {% assign workspace__picture__source__srcset__item__relative_url = nil %}
             {% continue %}
